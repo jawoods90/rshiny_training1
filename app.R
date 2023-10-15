@@ -9,41 +9,35 @@
 
 library(shiny)
 
-# Define UI for application that draws a histogram
 ui <- fluidPage(
-
-    # Application title
-    titlePanel("Old Faithful Geyser Data"),
-
-    # Sidebar with a slider input for number of bins 
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
-    )
+    # date slider
+    sliderInput(inputId = "dob", label = "when were you born?", 
+                min = as.Date("1980-01-01", "%Y-%m-%d"), 
+                max = as.Date("2023-10-15", "%Y-%m-%d"),
+                value = as.Date("1990-05-20", "%Y-%m-%d"),
+                timeFormat = "%Y-%m-%d"),
+    
+    # mutiple choice select from list cell
+    selectInput(inputId = "state", label = "what is your favourite state?", 
+                choice = state.name,
+                multiple = TRUE),
+    
+    # set up user input controls
+    selectInput(inputId = "dataset", label = "Dataset", choices = ls("package:datasets")),
+    
+    # set where to put rendered output - these are output types linked to render functions
+    verbatimTextOutput(outputId = "summary"),
+    tableOutput(outputId = "table"),
+    dataTableOutput(outputId = "dynamictable")
 )
-
-# Define server logic required to draw a histogram
-server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+server <- function(input, output, session) {
+    # Create a reactive expression
+    dataset <- reactive({
+        get(input$dataset, "package:datasets")
     })
+    
+    output$summary <- renderPrint(summary(dataset()))
+    output$table <- renderTable(dataset())
+    output$dynamictable <- renderDataTable(dataset(), options = list(pageLength = 5))
 }
-
-# Run the application 
-shinyApp(ui = ui, server = server)
+shinyApp(ui, server)
