@@ -40,4 +40,5 @@ server <- function(input, output, session) {
     output$table <- renderTable(dataset())
     output$dynamictable <- renderDataTable(dataset(), options = list(pageLength = 5))
 }
+
 shinyApp(ui, server)
